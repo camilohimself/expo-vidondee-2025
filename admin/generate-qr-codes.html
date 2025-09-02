@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur QR Codes - Exposition Camilo Rivera</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #f5f5f0;
+            font-family: 'Helvetica Neue', sans-serif;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 200;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .instructions {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            margin-bottom: 40px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .qr-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .qr-item h3 {
+            font-size: 18px;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .qr-item .artwork-code {
+            font-size: 12px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .qr-url {
+            font-size: 11px;
+            opacity: 0.7;
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            background: transparent;
+            border: 1px solid rgba(245,245,240,0.3);
+            color: #f5f5f0;
+            padding: 10px 20px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .download-btn:hover {
+            background: rgba(245,245,240,0.1);
+            border-color: rgba(245,245,240,0.5);
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .actions button {
+            background: transparent;
+            border: 1px solid rgba(245,245,240,0.3);
+            color: #f5f5f0;
+            padding: 15px 30px;
+            font-size: 14px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .actions button:hover {
+            background: rgba(245,245,240,0.1);
+            border-color: rgba(245,245,240,0.5);
+        }
+
+        .generated-info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        @media print {
+            body { background: white; color: black; }
+            .qr-item { break-inside: avoid; page-break-inside: avoid; }
+            .download-btn, .actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Générateur QR Codes - Exposition</h1>
+        
+        <div class="instructions">
+            <h3>Instructions :</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Cette page génère automatiquement les QR codes pour toutes les œuvres</li>
+                <li>Utilisez "Imprimer tous" pour créer des étiquettes physiques</li>
+                <li>Chaque QR code peut être téléchargé individuellement</li>
+                <li>Assurez-vous que l'URL de base corresponde à votre domaine final</li>
+            </ul>
+        </div>
+
+        <div class="qr-grid" id="qrGrid">
+            <!-- QR codes will be generated here -->
+        </div>
+
+        <div class="actions">
+            <button onclick="printAll()">Imprimer tous les QR codes</button>
+            <button onclick="regenerateAll()">Régénérer tous les codes</button>
+        </div>
+
+        <div class="generated-info" id="generatedInfo">
+            Codes générés le : <span id="timestamp"></span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // Configuration des œuvres
+        const artworks = [
+            {
+                id: 'dialogue-interieur',
+                title: 'Dialogue Intérieur',
+                code: 'CR-2025-003',
+                filename: 'dialogue-interieur.html'
+            },
+            {
+                id: 'composition-no7',
+                title: 'Composition N°7',
+                code: 'CR-2025-007',
+                filename: 'composition-no7.html'
+            },
+            {
+                id: 'traces-urbaines',
+                title: 'Traces Urbaines',
+                code: 'CR-2025-012',
+                filename: 'traces-urbaines.html'
+            }
+        ];
+
+        // URL de base - À modifier selon votre domaine final
+        const BASE_URL = 'https://expo.camilorivera.art/';
+
+        function generateQRGrid() {
+            const grid = document.getElementById('qrGrid');
+            grid.innerHTML = '';
+
+            artworks.forEach(artwork => {
+                const url = BASE_URL + artwork.filename;
+                const qrItem = document.createElement('div');
+                qrItem.className = 'qr-item';
+                qrItem.innerHTML = `
+                    <h3>${artwork.title}</h3>
+                    <div class="artwork-code">${artwork.code}</div>
+                    <div class="qr-container" id="qr-${artwork.id}"></div>
+                    <div class="qr-url">${url}</div>
+                    <button class="download-btn" onclick="downloadQR('${artwork.id}', '${artwork.title}')">
+                        Télécharger PNG
+                    </button>
+                    <button class="download-btn" onclick="printQR('${artwork.id}')">
+                        Imprimer
+                    </button>
+                `;
+                grid.appendChild(qrItem);
+
+                // Générer le QR code
+                setTimeout(() => {
+                    const qrContainer = document.getElementById(`qr-${artwork.id}`);
+                    new QRCode(qrContainer, {
+                        text: url,
+                        width: 200,
+                        height: 200,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                }, 100);
+            });
+
+            // Mettre à jour le timestamp
+            document.getElementById('timestamp').textContent = new Date().toLocaleString('fr-FR');
+        }
+
+        function downloadQR(artworkId, title) {
+            const qrContainer = document.getElementById(`qr-${artworkId}`);
+            const canvas = qrContainer.querySelector('canvas');
+            
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = `QR-${title.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        }
+
+        function printQR(artworkId) {
+            const qrItem = document.getElementById(`qr-${artworkId}`).closest('.qr-item');
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>QR Code</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+                        .qr-container { background: white; padding: 15px; display: inline-block; }
+                    </style>
+                </head>
+                <body>
+                    ${qrItem.innerHTML}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function printAll() {
+            window.print();
+        }
+
+        function regenerateAll() {
+            generateQRGrid();
+        }
+
+        // Générer les QR codes au chargement
+        window.addEventListener('load', generateQRGrid);
+    </script>
+</body>
+</html>
