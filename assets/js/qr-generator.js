@@ -1,4 +1,4 @@
-// QR Code generation for artwork pages
+// QR Code generation for admin and test pages only
 function generateQRCode() {
     const currentUrl = window.location.href;
     const qrContainer = document.getElementById('qrcode');
@@ -24,15 +24,14 @@ function generateQRCode() {
             const displayUrl = currentUrl.replace(window.location.origin, 'expo.camilorivera.art');
             urlDisplay.textContent = displayUrl;
         }
-    } else {
-        console.error('QRCode library not loaded or container not found');
     }
 }
 
-// Initialize QR code when page loads
+// Initialize QR code when page loads (only if QR container exists)
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait a bit for QRCode library to be fully loaded
-    setTimeout(generateQRCode, 100);
+    if (document.getElementById('qrcode')) {
+        setTimeout(generateQRCode, 100);
+    }
 });
 
 // Lightbox functionality
