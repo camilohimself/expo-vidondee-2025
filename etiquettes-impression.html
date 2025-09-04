@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étiquettes Exposition - Impression</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .label {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .controls h1 {
+            margin: 0 0 20px 0;
+            color: #333;
+        }
+
+        .controls button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .controls button:hover {
+            background: #333;
+        }
+
+        .labels-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .label {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 30px;
+            align-items: center;
+            width: 480px;
+            height: 160px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .label-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .label-title {
+            font-weight: 600;
+            font-size: 15.4px;
+            color: #000;
+            margin: 0;
+        }
+
+        .label-year {
+            font-size: 13.2px;
+            color: #666;
+            margin: 0;
+        }
+
+        .label-dimensions {
+            font-size: 13.2px;
+            color: #666;
+            margin: 0;
+        }
+
+        .label-technique {
+            font-size: 12.1px;
+            color: #888;
+            margin: 0;
+        }
+
+        .label-price {
+            font-size: 13.2px;
+            color: #000;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .label-qr {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: auto;
+        }
+
+        .label-qr canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls no-print">
+        <h1>Générateur d'étiquettes pour exposition</h1>
+        <button onclick="window.print()">🖨️ Imprimer les étiquettes</button>
+        <button onclick="generateLabels()">🔄 Régénérer les QR codes</button>
+        <p style="margin-top: 15px; color: #666;">
+            Format recommandé : Papier cartonné blanc, 300g/m²<br>
+            Dimensions : 40cm x 12cm par étiquette<br>
+            <strong>Note :</strong> Une étiquette par page pour découpage individuel
+        </p>
+    </div>
+
+    <div class="preview-title no-print">Aperçu de l'étiquette n°1 :</div>
+    
+    <div class="labels-container" id="labelsContainer">
+        <!-- Étiquette 1 -->
+        <div class="label">
+            <div class="label-info">
+                <h3 class="label-title">Abstrait 153</h3>
+                <p class="label-year">2023</p>
+                <p class="label-dimensions">120 × 120 cm</p>
+                <p class="label-technique">Huile sur toile</p>
+                <p class="label-price">CHF 6'000</p>
+            </div>
+            <div class="label-qr" id="qr-1"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BASE_URL = 'https://expo-vidondee-2025.netlify.app/';
+        
+        // Données des œuvres
+        const oeuvres = [
+            { id: 1, titre: "Abstrait 153", annee: "2023", dimensions: "120 × 120 cm", prix: "6'000" },
+            { id: 2, titre: "Abstrait 60", annee: "2017", dimensions: "60 × 60 cm", prix: "1'500" },
+            { id: 3, titre: "Abstrait 49", annee: "2017", dimensions: "50 × 60 cm", prix: "1'250" },
+            { id: 4, titre: "Abstrait 77", annee: "2023", dimensions: "120 × 120 cm", prix: "6'000" },
+            { id: 5, titre: "Abstrait 12", annee: "2017", dimensions: "60 × 60 cm", prix: "1'500" },
+            { id: 6, titre: "Abstrait 632", annee: "2025", dimensions: "160 × 120 cm", prix: "8'000" },
+            { id: 7, titre: "Abstrait 44", annee: "2023", dimensions: "120 × 120 cm", prix: "6'000" },
+            { id: 8, titre: "Abstrait 037", annee: "2019", dimensions: "100 × 100 cm", prix: "4'200" },
+            { id: 9, titre: "Abstrait 71", annee: "2019", dimensions: "90 × 90 cm", prix: "3'400" },
+            { id: 10, titre: "Abstrait 66", annee: "2025", dimensions: "100 × 100 cm", prix: "4'200" },
+            { id: 11, titre: "Abstrait 69", annee: "2022", dimensions: "120 × 120 cm", prix: "6'000" },
+            { id: 12, titre: "Abstrait 143", annee: "2018", dimensions: "143 × 171 cm", prix: "10'200" },
+            { id: 13, titre: "Abstrait 55", annee: "2023", dimensions: "120 × 120 cm", prix: "6'000" },
+            { id: 14, titre: "Abstrait 32", annee: "2020", dimensions: "70 × 100 cm", prix: "2'900" },
+            { id: 15, titre: "Abstrait 55", annee: "2025", dimensions: "70 × 100 cm", prix: "2'900" },
+            { id: 16, titre: "Abstrait 122", annee: "2025", dimensions: "70 × 100 cm", prix: "2'900" },
+            { id: 17, titre: "Abstrait 237", annee: "2022", dimensions: "160 × 120 cm", prix: "8'000" },
+            { id: 18, titre: "Abstrait 40", annee: "2023", dimensions: "120 × 120 cm", prix: "6'000" },
+            { id: 19, titre: "Abstrait 29", annee: "2017", dimensions: "80 × 60 cm", prix: "2'000" },
+            { id: 20, titre: "Abstrait 90", annee: "2025", dimensions: "70 × 100 cm", prix: "2'900" }
+        ];
+
+        function generateLabels() {
+            const container = document.getElementById('labelsContainer');
+            container.innerHTML = '';
+            
+            oeuvres.forEach(oeuvre => {
+                const label = document.createElement('div');
+                label.className = 'label';
+                
+                label.innerHTML = `
+                    <div class="label-info">
+                        <h3 class="label-title">${oeuvre.titre}</h3>
+                        <p class="label-year">${oeuvre.annee}</p>
+                        <p class="label-dimensions">${oeuvre.dimensions}</p>
+                        <p class="label-technique">Huile sur toile</p>
+                        <p class="label-price">CHF ${oeuvre.prix}</p>
+                    </div>
+                    <div class="label-qr" id="qr-${oeuvre.id}"></div>
+                `;
+                
+                container.appendChild(label);
+                
+                // Générer le QR code
+                setTimeout(() => {
+                    new QRCode(document.getElementById(`qr-${oeuvre.id}`), {
+                        text: `${BASE_URL}oeuvre${oeuvre.id}.html`,
+                        width: 140,
+                        height: 140,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }, 100);
+            });
+        }
+
+        // Générer les étiquettes au chargement
+        window.addEventListener('load', generateLabels);
+    </script>
+</body>
+</html>
