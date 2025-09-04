@@ -53,8 +53,8 @@ function closeLightbox() {
 
 // Social media actions
 function contactWhatsApp(artworkTitle = '') {
-    const phoneNumber = '+41794567890'; // Remplacez par votre numéro
-    const message = encodeURIComponent(`Bonjour Camilo, je suis intéressé(e) par l'œuvre "${artworkTitle}" que j'ai découverte lors de votre exposition. Pourriez-vous me donner plus d'informations ?`);
+    const phoneNumber = '+41797380339'; // Numéro WhatsApp Camilo Rivera
+    const message = encodeURIComponent(`Bonjour, je suis intéressé(e) par l'œuvre "${artworkTitle}" de Camilo Rivera que j'ai découverte à La Vidondée. Pourriez-vous me donner le prix et les informations d'achat ?`);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(whatsappUrl, '_blank');
 }
