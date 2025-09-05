@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+
+# Images sources HEIC - NE JAMAIS VERSIONNER
+assets/images/images_formatOK/
+*.heic
+*.HEIC
+
+# Temporaires
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Environnement
+.env
+.env.local
